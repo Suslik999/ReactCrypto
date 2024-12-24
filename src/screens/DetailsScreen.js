@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { fetchCryptoDetails } from '../utils/api';
 
 const DetailsScreen = ({ route }) => {
@@ -17,11 +17,32 @@ const DetailsScreen = ({ route }) => {
     if (!details) return <Text>Loading...</Text>;
 
     return (
-        <View>
-            <Text>{details.name}</Text>
-            <Text>Current Price: ${details.market_data.current_price.usd}</Text>
+        <View style={styles.container}>
+            <Text style={styles.name}>{details.name} ({details.symbol.toUpperCase()})</Text>
+            <Text style={styles.price}>Current Price: ${details.market_data.current_price.usd.toFixed(2)}</Text>
+            <Text>Market Cap: ${details.market_data.market_cap.usd.toLocaleString()}</Text>
+            <Text>24h High: ${details.market_data.high_24h.usd.toFixed(2)}</Text>
+            <Text>24h Low: ${details.market_data.low_24h.usd.toFixed(2)}</Text>
         </View>
     );
 };
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        padding: 16,
+        backgroundColor: '#fff',
+    },
+    name: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginBottom: 8,
+    },
+    price: {
+        fontSize: 18,
+        color: '#333',
+        marginBottom: 16,
+    },
+});
 
 export default DetailsScreen;
