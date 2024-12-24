@@ -1,22 +1,57 @@
 import axios from 'axios';
 
-const API_KEY = 'CG-S6y5ERq4nqsLbd1U7MCwaQ8x';
-const BASE_URL = 'https://api.coingecko.com/api/v3';
+const API_URL = 'https://api.coingecko.com/api/v3/';
+let lastRequestTime = 0;
 
-export const fetchCryptoData = async (currency) => {
-    const response = await axios.get(`${BASE_URL}/coins/markets`, {
-        params: {
+const rateLimitedRequest = async (url, params) => {
+    const now = Date.now();
+    const delay = Math.max(0, 1200 - (now - lastRequestTime));
+    await new Promise((resolve) => setTimeout(resolve, delay));
+    lastRequestTime = Date.now();
+
+    return axios.get(url, { params });
+};
+
+export const fetchCryptoData = async (currency = 'usd') => {
+    try {
+        const response = await rateLimitedRequest(`${API_URL}coins/markets`, {
             vs_currency: currency,
             order: 'market_cap_desc',
-            per_page: 100,
+            per_page: 50,
             page: 1,
             sparkline: false,
-        },
-    });
-    return response.data;
+        });
+
+        if (response.status !== 200 || !Array.isArray(response.data)) {
+            throw new Error('Invalid response format');
+        }
+
+        return response.data;
+    } catch (error) {
+        if (error.response?.status === 429) {
+            console.error('Rate limit exceeded. Please try again later.');
+        } else {
+            console.error('Error fetching crypto data:', error.message || error);
+        }
+        return [];
+    }
 };
 
 export const fetchCryptoDetails = async (id) => {
-    const response = await axios.get(`${BASE_URL}/coins/${id}`);
-    return response.data;
+    try {
+        const response = await rateLimitedRequest(`${API_URL}coins/${id}`);
+
+        if (response.status !== 200 || typeof response.data !== 'object') {
+            throw new Error('Invalid response format');
+        }
+
+        return response.data;
+    } catch (error) {
+        if (error.response?.status === 429) {
+            console.error('Rate limit exceeded. Please try again later.');
+        } else {
+            console.error('Error fetching crypto details:', error.message || error);
+        }
+        return {};
+    }
 };

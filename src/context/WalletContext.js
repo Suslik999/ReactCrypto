@@ -19,12 +19,28 @@ export const WalletProvider = ({ children }) => {
                         : item
                 );
             }
-            return [...prevWallet, currency];
+            return [...prevWallet, { ...currency }];
         });
     };
 
+    const sellFromWallet = (id, amountToSell) => {
+        setWallet((prevWallet) =>
+            prevWallet
+                .map((item) =>
+                    item.id === id
+                        ? {
+                              ...item,
+                              amount: item.amount - amountToSell,
+                              total: item.total - amountToSell * item.price,
+                          }
+                        : item
+                )
+                .filter((item) => item.amount > 0)
+        );
+    };
+
     return (
-        <WalletContext.Provider value={{ wallet, addToWallet }}>
+        <WalletContext.Provider value={{ wallet, addToWallet, sellFromWallet }}>
             {children}
         </WalletContext.Provider>
     );

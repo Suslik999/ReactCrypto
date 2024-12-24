@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TextInput, Button, Alert } from 'react-native';
 import { useWallet } from '../context/WalletContext';
 import { fetchCryptoDetails } from '../utils/api';
 
 const WalletScreen = () => {
-    const { wallet } = useWallet();
+    const { wallet, sellFromWallet } = useWallet();
     const [updatedWallet, setUpdatedWallet] = useState([]);
     const [totalBalance, setTotalBalance] = useState(0);
+    const [sellAmount, setSellAmount] = useState({});
 
     useEffect(() => {
         const updateWalletBalance = async () => {
@@ -34,6 +35,19 @@ const WalletScreen = () => {
         updateWalletBalance();
     }, [wallet]);
 
+    const handleSell = (id) => {
+        const amountToSell = parseFloat(sellAmount[id]);
+        const currency = updatedWallet.find((item) => item.id === id);
+
+        if (!amountToSell || amountToSell <= 0 || amountToSell > currency.amount) {
+            Alert.alert('Invalid Input', 'Enter a valid amount to sell.');
+            return;
+        }
+
+        sellFromWallet(id, amountToSell);
+        setSellAmount((prev) => ({ ...prev, [id]: '' }));
+    };
+
     return (
         <View style={styles.container}>
             <Text style={styles.title}>My Wallet</Text>
@@ -45,7 +59,7 @@ const WalletScreen = () => {
             ) : (
                 <FlatList
                     data={updatedWallet}
-                    keyExtractor={(item) => item.id}
+                    keyExtractor={(item, index) => `${item.id}-${index}`}
                     renderItem={({ item }) => (
                         <View style={styles.item}>
                             <Text style={styles.name}>
@@ -65,6 +79,16 @@ const WalletScreen = () => {
                                 {item.profitOrLoss >= 0 ? '+' : '-'}$
                                 {Math.abs(item.profitOrLoss).toFixed(2)}
                             </Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Amount to sell"
+                                keyboardType="numeric"
+                                value={sellAmount[item.id] || ''}
+                                onChangeText={(text) =>
+                                    setSellAmount((prev) => ({ ...prev, [item.id]: text }))
+                                }
+                            />
+                            <Button title="Sell" onPress={() => handleSell(item.id)} />
                         </View>
                     )}
                 />
@@ -109,6 +133,15 @@ const styles = StyleSheet.create({
     loss: {
         color: 'red',
         fontWeight: 'bold',
+    },
+    input: {
+        height: 40,
+        borderColor: '#ccc',
+        borderWidth: 1,
+        borderRadius: 8,
+        paddingHorizontal: 8,
+        marginTop: 8,
+        marginBottom: 8,
     },
 });
 
