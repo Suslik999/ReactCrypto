@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, FlatList, TouchableOpacity, Button, StyleSheet } from 'react-native';
 import { fetchCryptoData } from '../utils/api';
 
 const HomeScreen = ({ navigation }) => {
@@ -45,6 +45,10 @@ const HomeScreen = ({ navigation }) => {
                         <Text style={styles.cryptoPrice}>${item.current_price.toFixed(2)}</Text>
                     </TouchableOpacity>
                 )}
+            />
+            <Button
+                title="Go to Wallet"
+                onPress={() => navigation.navigate('Wallet')}
             />
         </View>
     );

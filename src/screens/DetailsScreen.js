@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, Button, Alert } from 'react-native';
 import { fetchCryptoDetails } from '../utils/api';
+import { useWallet } from '../context/WalletContext';
 
 const DetailsScreen = ({ route, navigation }) => {
     const { id } = route.params;
     const [details, setDetails] = useState(null);
     const [amount, setAmount] = useState('');
+    const { addToWallet } = useWallet();
 
     useEffect(() => {
         const loadDetails = async () => {
@@ -23,16 +25,15 @@ const DetailsScreen = ({ route, navigation }) => {
             Alert.alert('Invalid Input', 'Please enter a valid amount.');
             return;
         }
-        navigation.navigate('Wallet', {
-            currency: {
-                id: details.id,
-                name: details.name,
-                symbol: details.symbol.toUpperCase(),
-                amount: parseFloat(amount),
-                price: parseFloat(details.market_data.current_price.usd),
-                total: parseFloat(totalPrice),
-            },
+        addToWallet({
+            id: details.id,
+            name: details.name,
+            symbol: details.symbol.toUpperCase(),
+            amount: parseFloat(amount),
+            price: parseFloat(details.market_data.current_price.usd),
+            total: parseFloat(totalPrice),
         });
+        navigation.navigate('Wallet');
     };
 
     return (
